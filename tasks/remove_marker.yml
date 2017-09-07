@@ -1,0 +1,15 @@
+---
+# Remove ansible block markers from a file
+- name: Remove  BEGIN ANSIBLE MANAGED BLOCK
+  lineinfile:
+    dest: "{{ item }}"
+    regexp: "^# BEGIN ANSIBLE MANAGED BLOCK"
+    state: absent
+  changed_when: false
+
+- name: Remove  END ANSIBLE MANAGED BLOCK
+  lineinfile:
+    dest: "{{ item }}"
+    regexp: "^# END ANSIBLE MANAGED BLOCK"
+    state: absent
+  changed_when: false

@@ -1,0 +1,6 @@
+---
+# Install monit
+- include: install_monit.yml
+
+# Configure monit.
+- include: configure_monit.yml

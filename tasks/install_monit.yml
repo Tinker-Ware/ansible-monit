@@ -1,0 +1,9 @@
+---
+#- name: Update repositories cache
+#  update_cache: yes
+
+- name: Install monit package
+  apt: 
+   name: monit
+   state: present
+  sudo: true

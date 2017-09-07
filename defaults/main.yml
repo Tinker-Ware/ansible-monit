@@ -1,0 +1,6 @@
+---
+# monit config file for startup
+monit_init_file: /etc/default/monit
+
+# monit path for config file
+monit_conf_path: /etc/monit/

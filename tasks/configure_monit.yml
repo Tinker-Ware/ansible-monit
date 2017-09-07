@@ -1,0 +1,63 @@
+---
+# Ensure monit can start adding line in /etc/default/monit
+- name: Ensure monit can start
+  lineinfile:
+    dest: "{{ monit_init_file }}"
+    line: "startup=1"
+    insertbefore: "START=yes"
+    state: present
+
+# Configure monit.
+# - name: Copy monit configuration for enable webservice.
+#   template:
+#     src: monitrc
+#     dest: "{{ monit_conf_path }}"
+#     owner: root
+#     group: root
+#     mode: 0600
+
+# Enable web service
+- name: search for line webservice
+  shell: cat "{{ monit_conf_path }}monitrc" | grep "# set httpd port 2812 and" | wc -l
+  register: test_grep # - debug: msg="{{test_grep.stdout}}"
+
+- name: Enable web service in monit
+  blockinfile:
+    path: "{{ monit_conf_path }}monitrc"
+    insertafter: "## enable SSL for the HTTP interface."
+    block: |
+      set httpd port 2812 and
+            allow localhost
+            allow 192.168.0.145
+    state: present
+  when: test_grep.stdout == "0"
+
+- include: remove_marker.yml
+  with_items:
+    - "{{ monit_conf_path }}monitrc"
+
+# Add apache2 for monitoring
+- name: search for line apache2
+  shell: cat "{{ monit_conf_path }}monitrc" | grep /run/apache2/apache2.pid | wc -l
+  register: test_grep # - debug: msg="{{test_grep.stdout}}"
+
+- name: add apache2 for monitoring in monitrc file
+  blockinfile:
+    path: "{{ monit_conf_path }}monitrc"
+    insertafter: "## performed should a test fail."
+    block: |
+      check process apache with pidfile /run/apache2/apache2.pid
+            start program = "/etc/init.d/apache2 start" with timeout 60 seconds
+            stop program  = "/etc/init.d/item stop"
+    state: present
+  when: test_grep.stdout == "0"
+
+- include: remove_marker.yml
+  with_items:
+    - "{{ monit_conf_path }}monitrc"
+
+# Reload monit service
+- service:
+   name: monit
+   state: restarted
+   enabled: yes
